@@ -1,0 +1,16 @@
+{
+    "200631432236761088": {
+        "email": "teste",
+        "cart": [],
+        "form_recebimento": "Email",
+        "cart_messages": [
+            {
+                "channel_id": 1297073403789836310,
+                "message_id": 1297095368076562532
+            }
+        ]
+    },
+    "585838304814039071": {
+        "email": "demoniccometraveco@gmail.com"
+    }
+}
