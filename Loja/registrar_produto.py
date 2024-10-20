@@ -5,6 +5,7 @@ import json
 import os
 import asyncio
 import uuid  # Importado para gerar IDs únicos de compra
+import mercadopago  # Adicionando a integração do Mercado Pago
 
 # Arquivo JSON onde os produtos são salvos
 PRODUCTS_FILE = 'produtos.json'
@@ -46,6 +47,9 @@ def salvar_carrinhos():
 # Função auxiliar para checar se o usuário é administrador ou tem permissão especial
 def checar_permissao(interaction):
     return interaction.user.guild_permissions.administrator or 'registrar_permissoes' in [role.name for role in interaction.user.roles]
+
+# Adicionar a integração do Mercado Pago
+mp = mercadopago.SDK("APP_USR-5dc99f51-be5d-43e0-aa70-789f26e35f09")
 
 # Função para criar a view de finalizar compra
 def criar_view_finalizar_compra():
@@ -179,49 +183,61 @@ async def mostrar_metodo_pagamento(interaction: discord.Interaction):
         purchase_id = str(uuid.uuid4())[:8]  # Gerar ID único de compra
         total_value = sum(item['valor_total'] for item in cart_items)
 
-        # Criar embed com detalhes da compra
-        embed_resumo = discord.Embed(
-            title="Resumo da Compra",
-            description=f"Forma de Recebimento: {form_recebimento}\nID da Compra: {purchase_id}\nValor Total: R$ {total_value}",
-            color=discord.Color.green()
-        )
+        # Criar pagamento via API do Mercado Pago
+        payment_data = {
+            "transaction_amount": total_value,
+            "description": f"Compra na Loja - ID: {purchase_id}",
+            "payment_method_id": "pix",
+            "payer": {
+                "email": usuarios[usuario_id]['email']
+            }
+        }
+        
+        # Gerar o pagamento via API do Mercado Pago
+        payment = mp.payment().create(payment_data)
 
-        for item in cart_items:
-            embed_resumo.add_field(
-                name=item['nome_produto'],
-                value=f"Preço Unitário: R$ {item['preco_unitario']}\nQuantidade: {item['quantidade']}\nValor: R$ {item['valor_total']}",
-                inline=False
+        # Adicionar uma verificação para garantir que a chave 'point_of_interaction' existe
+        if "response" in payment and "point_of_interaction" in payment["response"]:
+            pix_data = payment["response"]["point_of_interaction"]["transaction_data"]
+            qr_code_url = pix_data["qr_code"]
+            qr_code_base64 = pix_data["qr_code_base64"]
+
+            # Enviar chave Pix e QR code para o usuário
+            embed_pix = discord.Embed(
+                title="Detalhes do Pagamento via Pix",
+                description=f"Chave Pix: {pix_data['qr_code']} \nUse o código abaixo para pagar ou escaneie o QR Code.",
+                color=discord.Color.green()
             )
+            embed_pix.set_image(url=qr_code_base64)
+            
+            await interaction.response.send_message(embed=embed_pix, ephemeral=True)
 
-        # Criar botões 'Gerar Pagamento' e 'Cancelar'
-        view_confirmacao = View()
-        button_gerar_pagamento = Button(label="Gerar Pagamento", style=discord.ButtonStyle.green)
-        button_cancelar = Button(label="Cancelar", style=discord.ButtonStyle.red)
+            # Criar botão de "Verificar Pagamento"
+            view_pagamento = View()
+            button_verificar_pagamento = Button(label="Verificar Pagamento", style=discord.ButtonStyle.primary)
 
-        async def gerar_pagamento_callback(interaction: discord.Interaction):
-            await interaction.response.send_message("Pagamento gerado com sucesso!", ephemeral=True)
-            # Aqui você pode adicionar a lógica para gerar o pagamento via Pix
-            # Após o pagamento, limpar o carrinho
-            usuarios[usuario_id]['cart'] = []
-            salvar_usuarios()
+            async def verificar_pagamento_callback(interaction: discord.Interaction):
+                payment_status = mp.payment().get(payment['response']['id'])
+                if payment_status['response']['status'] == 'approved':
+                    await interaction.response.send_message("Pagamento confirmado! Produto entregue.", ephemeral=True)
+                    # Aqui você pode adicionar a lógica para entregar o produto ao usuário
+                    await entregar_produto_automaticamente(interaction.user, cart_items)
+                else:
+                    await interaction.response.send_message("Pagamento ainda não confirmado. Por favor, tente novamente.", ephemeral=True)
 
-        async def cancelar_callback(interaction: discord.Interaction):
-            await interaction.response.send_message("Compra cancelada.", ephemeral=True)
-            # Limpar o carrinho
-            usuarios[usuario_id]['cart'] = []
-            salvar_usuarios()
+            button_verificar_pagamento.callback = verificar_pagamento_callback
+            view_pagamento.add_item(button_verificar_pagamento)
 
-        button_gerar_pagamento.callback = gerar_pagamento_callback
-        button_cancelar.callback = cancelar_callback
-
-        view_confirmacao.add_item(button_gerar_pagamento)
-        view_confirmacao.add_item(button_cancelar)
-
-        await interaction.response.send_message(embed=embed_resumo, view=view_confirmacao, ephemeral=True)
+            await interaction.followup.send("Após efetuar o pagamento, clique no botão abaixo para verificar o status:", view=view_pagamento, ephemeral=True)
+        else:
+            # Adicionar tratamento de erro para exibir a resposta completa caso haja algum problema
+            await interaction.response.send_message(
+                "Ocorreu um erro ao gerar o pagamento. Detalhes da resposta:\n" + str(payment), 
+                ephemeral=True
+            )
 
     async def cartao_callback(interaction: discord.Interaction):
         await interaction.response.send_message("Você escolheu o método de pagamento via Cartão (Em desenvolvimento).", ephemeral=True)
-        # Você pode adicionar lógica semelhante à do pix_callback aqui
 
     button_pix = Button(label="Pix", style=discord.ButtonStyle.success)
     button_cartao = Button(label="Cartão (Em desenvolvimento)", style=discord.ButtonStyle.secondary)
@@ -234,6 +250,17 @@ async def mostrar_metodo_pagamento(interaction: discord.Interaction):
 
     # Enviar a mensagem com as opções de pagamento
     await interaction.followup.send(embed=embed_pagamento, view=view_pagamento, ephemeral=True)
+
+# Função para entregar o produto automaticamente após o pagamento ser confirmado
+async def entregar_produto_automaticamente(usuario, cart_items):
+    for item in cart_items:
+        cargo_id = item['produto_id']  # Exemplo: use o ID do produto para identificar o cargo
+        cargo = discord.utils.get(usuario.guild.roles, id=cargo_id)
+        if cargo:
+            await usuario.add_roles(cargo)
+            print(f"O cargo {cargo.name} foi adicionado ao usuário {usuario.name}.")
+
+# Continua com o restante do código original, sem modificações
 
 # Função para criar a view do produto (botões)
 def criar_view_produto(produto_id):

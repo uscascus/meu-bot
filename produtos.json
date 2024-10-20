@@ -1,74 +1,15 @@
 {
     "1": {
-        "nome": "Contas Cache",
-        "preco": "20",
-        "preco_numerico": 10.0,
-        "estoque": "20",
-        "descricao": "login via app",
-        "cargo": "<@&1266089475017277575>",
-        "imagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRhom2zXrSUHERuUTInv1rn89refBrfKC7Dg&s",
-        "expira": "6",
-        "categoria_id": 1296325201927340032
-    },
-    "2": {
-        "nome": "Contas Cache",
-        "preco": "22",
-        "preco_numerico": 10.0,
-        "estoque": "22",
-        "descricao": "login via app",
-        "cargo": "<@&1266089475017277575>",
-        "imagem": "https://img.myloview.com.br/posters/teste-o-vetor-de-icone-isolado-no-fundo-branco-sinal-de-teste-pictograma-fino-ou-desenho-de-simbolo-de-contorno-no-estilo-linear-700-135719810.jpg",
-        "expira": "nunca",
-        "categoria_id": 1296325201927340032,
-        "mensagem_id": 1296500537138614273
-    },
-    "3": {
         "nome": "teste",
         "preco": "10",
         "preco_numerico": 10.0,
-        "estoque": 10,
-        "descricao": "a",
-        "cargo": "<@&1266089475017277575>",
-        "imagem": "https://img.myloview.com.br/posters/teste-o-vetor-de-icone-isolado-no-fundo-branco-sinal-de-teste-pictograma-fino-ou-desenho-de-simbolo-de-contorno-no-estilo-linear-700-135719810.jpg",
-        "expira": "nunca",
-        "categoria_id": 1296325201927340032,
-        "mensagem_id": 1296501215185731654
-    },
-    "4": {
-        "nome": "teste",
-        "preco": "10",
-        "preco_numerico": 10.0,
-        "estoque": 10,
+        "estoque": 1950,
         "descricao": "teste",
         "cargo": "<@&1266089475017277575>",
-        "imagem": "https://www.planura.mg.leg.br/imagens/teste.jpg/image_preview",
+        "imagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNv4N91HW8WaJo19_zSGhAjeKbkq9SrlY4g&s",
         "expira": "nunca",
         "categoria_id": 1296325201927340032,
-        "mensagem_id": 1296504295960875090
-    },
-    "5": {
-        "nome": "abc",
-        "preco": "10",
-        "preco_numerico": 10.0,
-        "estoque": 10,
-        "descricao": "a",
-        "cargo": "<@&1266089475017277575>",
-        "imagem": "https://www.planura.mg.leg.br/imagens/teste.jpg/image_preview",
-        "expira": "nunca",
-        "categoria_id": 1296325201927340032,
-        "mensagem_id": 1296505304820879441
-    },
-    "7": {
-        "nome": "teste22",
-        "preco": "2",
-        "preco_numerico": 10.0,
-        "estoque": 0,
-        "descricao": "teste",
-        "cargo": "<@&1266089475017277575>",
-        "imagem": "https://media.discordapp.net/attachments/1191146384938770472/1201689862630285332/gamesneeze_drain_cheat_razrukha_envger_dogshit_production.gif",
-        "expira": "nunca",
-        "categoria_id": 1296325201927340032,
-        "mensagem_id": 1297097363101323305,
-        "canal_texto_id": 1297064622561427477
+        "mensagem_id": 1297391428586045583,
+        "canal_texto_id": 1297385592505765943
     }
 }
